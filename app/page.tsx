@@ -11,7 +11,7 @@ export default function Home() {
         style={{ height: "60vh" }}
       >
         <div className="h-full aspect-square">
-          <BaseSvg width={1000} height={1000} bgColor="#f5f5f5">
+          <BaseSvg width={1000} height={1000} bgColor="#111111">
             <BouncingDots
               rows={5}
               columns={5}

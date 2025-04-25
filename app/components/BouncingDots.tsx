@@ -161,7 +161,7 @@ export const BouncingDots: React.FC<BouncingDotsProps> = ({
         cancelAnimationFrame(animationFrameId.current);
       }
     };
-  }, [svgWidth, svgHeight, PROXIMITY_THRESHOLD]);
+  }, [dots, svgWidth, svgHeight]);
 
   return (
     <>

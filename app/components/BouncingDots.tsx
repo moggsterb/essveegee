@@ -10,7 +10,7 @@ interface BouncingDotsProps {
 }
 
 // Constants
-const PROXIMITY_THRESHOLD = 300; // Changed from 100px to 300px
+const PROXIMITY_THRESHOLD = 200; // Changed from 100px to 300px
 
 interface Dot {
   x: number;

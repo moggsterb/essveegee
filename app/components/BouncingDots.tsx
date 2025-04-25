@@ -11,6 +11,7 @@ interface BouncingDotsProps {
 
 // Constants
 const PROXIMITY_THRESHOLD = 200; // Changed from 100px to 300px
+const ANIMATION_DELAY = 2000; // 2 seconds pause before animation starts
 
 interface Dot {
   x: number;
@@ -36,44 +37,8 @@ export const BouncingDots: React.FC<BouncingDotsProps> = ({
 }) => {
   const [dots, setDots] = useState<Dot[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
+  const [isAnimating, setIsAnimating] = useState(false); // Track animation state
   const animationFrameId = useRef<number | null>(null);
-
-  // Initialize dots with positions and random velocities
-  useEffect(() => {
-    const gap = Math.min(svgWidth, svgHeight) / Math.max(rows, columns) / 2;
-    const dotRadius = 5;
-    const baseSpeed = 2;
-    const initialDots: Dot[] = [];
-
-    // Calculate the total width and height of the grid
-    const gridWidth = columns * gap * 2;
-    const gridHeight = rows * gap * 2;
-
-    // Calculate the starting position to center the grid in the SVG
-    const startX = (svgWidth - gridWidth) / 2 + gap;
-    const startY = (svgHeight - gridHeight) / 2 + gap;
-
-    for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < columns; col++) {
-        initialDots.push({
-          x: startX + col * gap * 2,
-          y: startY + row * gap * 2,
-          velocityX: (Math.random() * 2 - 1) * baseSpeed,
-          velocityY: (Math.random() * 2 - 1) * baseSpeed,
-          radius: dotRadius,
-          hasNeighbors: false,
-        });
-      }
-    }
-
-    setDots(initialDots);
-
-    return () => {
-      if (animationFrameId.current !== null) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
-    };
-  }, [rows, columns, svgWidth, svgHeight]);
 
   // Calculate distance between two dots
   const calculateDistance = (dot1: Dot, dot2: Dot) => {
@@ -118,9 +83,59 @@ export const BouncingDots: React.FC<BouncingDotsProps> = ({
     return dotsWithNeighborInfo;
   };
 
+  // Initialize dots with positions and random velocities
+  useEffect(() => {
+    // Reduce gap for a tighter grid - using a smaller divisor to make dots closer
+    const gap = Math.min(svgWidth, svgHeight) / Math.max(rows, columns) / 4; // Changed from /2 to /4
+    const dotRadius = 5;
+    const baseSpeed = 2;
+    const initialDots: Dot[] = [];
+
+    // Calculate the total width and height of the grid
+    const gridWidth = columns * gap * 2;
+    const gridHeight = rows * gap * 2;
+
+    // Calculate the starting position to center the grid in the SVG
+    const startX = (svgWidth - gridWidth) / 2 + gap;
+    const startY = (svgHeight - gridHeight) / 2 + gap;
+
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < columns; col++) {
+        initialDots.push({
+          x: startX + col * gap * 2,
+          y: startY + row * gap * 2,
+          velocityX: (Math.random() * 2 - 1) * baseSpeed,
+          velocityY: (Math.random() * 2 - 1) * baseSpeed,
+          radius: dotRadius,
+          hasNeighbors: false,
+        });
+      }
+    }
+
+    // Process dots and connections in one go
+    const dotsWithConnections = updateConnections(initialDots);
+    setDots(dotsWithConnections);
+
+    return () => {
+      if (animationFrameId.current !== null) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+    };
+  }, [rows, columns, svgWidth, svgHeight]);
+
+  // Effect to start animation after delay
+  useEffect(() => {
+    // Set a timeout to start the animation after the delay
+    const timeoutId = setTimeout(() => {
+      setIsAnimating(true);
+    }, ANIMATION_DELAY);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   // Animation loop
   useEffect(() => {
-    if (dots.length === 0) return;
+    if (dots.length === 0 || !isAnimating) return;
 
     const animateDots = () => {
       setDots((prevDots) => {
@@ -161,7 +176,7 @@ export const BouncingDots: React.FC<BouncingDotsProps> = ({
         cancelAnimationFrame(animationFrameId.current);
       }
     };
-  }, [dots, svgWidth, svgHeight]);
+  }, [dots, svgWidth, svgHeight, updateConnections, isAnimating]);
 
   return (
     <>
